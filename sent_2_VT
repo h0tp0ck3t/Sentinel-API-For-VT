@@ -1,0 +1,37 @@
+import json
+import requests
+
+# Replace with your VirusTotal API key
+api_key = "your_api_key_here"
+
+# Replace with the file you want to scan
+file_path = "path/to/file.ext"
+
+# Send the file to VirusTotal for scanning
+url = "https://www.virustotal.com/api/v3/files"
+headers = {"x-apikey": api_key}
+files = {"file": open(file_path, "rb")}
+response = requests.post(url, headers=headers, files=files)
+
+# Parse the JSON response
+data = json.loads(response.text)
+
+# Extract the scan results from the response
+scan_results = data["data"]["attributes"]["last_analysis_results"]
+
+# Push the results to Microsoft Sentinel
+# Replace with your Microsoft Sentinel workspace id and key
+workspace_id = "your_workspace_id_here"
+workspace_key = "your_workspace_key_here"
+
+url = f"https://api.securitycenter.windows.com/api/logs"
+headers = {
+    "Content-Type": "application/json",
+    "Log-Type": "VirusTotalScanResults",
+    "X-Workspace": workspace_id,
+    "Authorization": f"WorkspaceKey {workspace_key}",
+}
+body = json.dumps(scan_results)
+response = requests.post(url, headers=headers, data=body)
+
+print(response.text)
